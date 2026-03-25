@@ -309,7 +309,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <script>
 // ─── CONFIG ───────────────────────────────────────────
-const MODEL = "gpt-4o";
+const MODEL = "claude-opus-4-5";
 
 // ─── STATE ────────────────────────────────────────────
 let activePlatforms = ['fb'];
@@ -700,24 +700,17 @@ function autoResize(el){
   el.style.height=Math.min(el.scrollHeight,120)+'px';
 }
 
-// ─── OPENAI RESPONSES API ─────────────────────────────
-async function callAPI(messages, maxTokens = 1200, useWebSearch = false){
-  const payload = {
-    model: MODEL,
-    instructions: SYS,
-    input: messages.map(m => ({
-      role: m.role,
-      content: [
-        { type: "input_text", text: m.content }
-      ]
-    })),
-    max_output_tokens: maxTokens
-  };
-
-  if (useWebSearch) {
-    payload.tools = [{ type: "web_search" }];
-  }
-
+// ─── Claude RESPONSES API ─────────────────────────────
+async function callAPI(messages, maxTokens = 1200) {
+  const r = await fetch('/api/openai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: MODEL, max_tokens: maxTokens, system: SYS, messages })
+  });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.error?.message || `HTTP ${r.status}`);
+  return d.content[0].text.trim();
+}
   const r = await fetch('/api/openai', {
     method:'POST',
     headers:{ 'Content-Type':'application/json' },
