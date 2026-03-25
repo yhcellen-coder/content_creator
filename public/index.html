@@ -309,7 +309,7 @@ select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/
 
 <script>
 // ─── CONFIG ───────────────────────────────────────────
-const MODEL = "claude-opus-4-5";
+const MODEL = "gpt-4o";
 
 // ─── STATE ────────────────────────────────────────────
 let activePlatforms = ['fb'];
@@ -402,8 +402,7 @@ async function doResearch(){
 
     const reply = await callAPI(
       [{ role:'user', content:prompt }],
-      1500,
-      true
+      1500
     );
 
     const match = reply.match(/\{[\s\S]*\}/);
@@ -503,7 +502,7 @@ async function generateCopy(){
 
   const tid = addTyping();
   try {
-    const reply = await callAPI([{role:'user', content:userMsg}], 2000, false);
+    const reply = await callAPI([{role:'user', content:userMsg}], 2000);
 
     chatHistory = [
       {role:'user', content:userMsg},
@@ -671,7 +670,7 @@ async function sendChat(){
   const tid = addTyping();
 
   try {
-    const reply = await callAPI(chatHistory, 1500, false);
+    const reply = await callAPI(chatHistory, 1500);
     removeTyping(tid);
     chatHistory.push({role:'assistant', content:reply});
     addMsg('assistant', reply);
@@ -710,33 +709,6 @@ async function callAPI(messages, maxTokens = 1200) {
   const d = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(d.error?.message || `HTTP ${r.status}`);
   return d.content[0].text.trim();
-}
-  const r = await fetch('/api/openai', {
-    method:'POST',
-    headers:{ 'Content-Type':'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  const d = await r.json().catch(()=>({}));
-
-  if(!r.ok){
-    throw new Error(d.error?.message || `HTTP ${r.status}`);
-  }
-
-  if (typeof d.output_text === 'string' && d.output_text.trim()) {
-    return d.output_text.trim();
-  }
-
-  const text = d.output
-    ?.flatMap(item => item.content || [])
-    ?.find(item => item.type === 'output_text')
-    ?.text;
-
-  if (text && text.trim()) {
-    return text.trim();
-  }
-
-  throw new Error('OpenAI 沒有回傳文字內容');
 }
 
 // ─── HELPERS ──────────────────────────────────────────
